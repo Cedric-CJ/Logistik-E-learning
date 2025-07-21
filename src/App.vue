@@ -178,7 +178,6 @@ export default {
 </script>
 
 <style scoped>
-/* Page transitions */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.15s ease;
@@ -189,7 +188,6 @@ export default {
   opacity: 0;
 }
 
-/* Page slide transitions */
 .page-slide-left-enter-active,
 .page-slide-left-leave-active,
 .page-slide-right-enter-active,
@@ -217,7 +215,6 @@ export default {
   transform: translateX(30px);
 }
 
-/* Loading indicator */
 .page-loading {
   position: fixed;
   top: 0;
@@ -231,12 +228,10 @@ export default {
   z-index: 9999;
 }
 
-/* Adjust main content for fixed navbar */
 main {
-  padding-top: 80px; /* Height of the navbar */
+  padding-top: 80px; 
 }
 
-/* Navbar styles */
 .navbar {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 0.75rem 0;
@@ -271,7 +266,6 @@ main {
   outline: none;
 }
 
-/* Responsive adjustments */
 @media (max-width: 991.98px) {
   .navbar-collapse {
     padding: 1rem;
@@ -293,7 +287,6 @@ main {
   }
 }
 
-/* Animation for menu icon */
 .navbar-toggler .mdi-menu {
   transition: transform 0.3s ease;
 }

@@ -1,6 +1,5 @@
 <template>
   <div class="home-page">
-    <!-- Hero Section -->
     <section class="hero-section py-5 bg-gradient">
       <div class="container py-5">
         <div class="row align-items-center">
@@ -33,11 +32,9 @@
         </div>
       </div>
     </section>
-
-    <!-- Features Section -->
     <section id="features" class="py-5 bg-light">
       <div class="container py-5">
-        <h2 class="text-center mb-5 section-title">Unsere Lernmodule</h2>
+        <h2 class="text-center mb-5 section-title">Meine Lernmodule</h2>
         <div class="row justify-content-center g-4">
           <div
             v-for="(feature, index) in features"
@@ -62,8 +59,6 @@
         </div>
       </div>
     </section>
-
-    <!-- About Section -->
     <section class="py-5">
       <div class="container py-5">
         <div class="row align-items-center">
@@ -78,8 +73,7 @@
           <div class="col-lg-6 ps-lg-5">
             <h2 class="mb-4 section-title">Über dieses Projekt</h2>
             <p class="mb-4">
-              Diese Plattform wurde an der HTW Berlin entwickelt, um Studierenden der Logistik ein
-              interaktives Lernerlebnis zu bieten.
+              Diese Webseite wurde von Cedric Arnhold (586354) an der HTW Berlin entwickelt, um die Studienleistung "E-Learning in der Produktionswirtschaft/Logistik" zu absolvieren.
             </p>
             <p class="mb-4">
               Theorie trifft Praxis: Lernen Sie Analysemethoden kennen und wenden Sie sie direkt an.
@@ -94,22 +88,19 @@
               >
               <div>
                 <p class="mb-0 fw-bold">Hochschule für Technik und Wirtschaft Berlin</p>
-                <p class="mb-0 small text-muted">Fachbereich Wirtschafts- und Rechtswissenschaften</p>
+                <p class="mb-0 small text-muted">Fachbereich 4 Informatik, Kommunikation und Wirtschaft</p>
               </div>
             </div>
           </div>
         </div>
       </div>
     </section>
-
-    <!-- Zielkonflikt Section -->
     <section id="zielkonflikt" class="py-5 bg-light">
       <div class="container py-5">
         <h2 class="text-center mb-4 section-title">Zielkonflikt in der Logistik</h2>
         <p class="lead text-center mb-5">
           Zielkonflikte treten auf, wenn sich Logistikziele gegenseitig beeinträchtigen.
         </p>
-
         <div class="row justify-content-center">
           <div class="col-lg-8">
             <div class="card shadow-sm border-0 mb-4">
@@ -127,7 +118,6 @@
                 </ul>
               </div>
             </div>
-
             <div class="card shadow-sm border-0 mb-4">
               <div class="card-body">
                 <h3 class="h5 mb-3">Typische Beispiele</h3>
@@ -151,7 +141,6 @@
                 </div>
               </div>
             </div>
-
             <div class="card shadow-sm border-0">
               <div class="card-body">
                 <h3 class="h5 mb-3">Lösungsansätze</h3>
@@ -209,7 +198,6 @@ onMounted(() => {
   setTimeout(() => (animated.value = true), 100)
 })
 </script>
-
 <style scoped>
 .hero-section {
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -222,7 +210,6 @@ onMounted(() => {
   opacity: 0.5; z-index: 0;
 }
 .hero-section > .container { position: relative; z-index: 1; }
-
 .icon-wrapper {
   width: 80px; height: 80px;
   background-color: rgba(0, 51, 102, 0.1);
@@ -255,12 +242,8 @@ onMounted(() => {
 @keyframes fadeInUp {
   to { opacity: 1; transform: translateY(0); }
 }
-
-/* list styles */
 .list-unstyled { padding-left: 0; list-style: none; }
 .list-unstyled li { margin-bottom: 0.5rem; }
-
-/* Responsive tweaks */
 @media (max-width: 768px) {
   .d-flex.flex-wrap { flex-direction: column; }
   .hero-image-container { margin-top: 2rem; }
