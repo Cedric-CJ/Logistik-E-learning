@@ -2,12 +2,14 @@
     "name": "logistik-e-learning",
     "version": "1.0.0",
     "private": true,
+    "homepage": "https://cedric-cj.github.io/Logistik-E-learning",
     "type": "module",
     "scripts": {
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "deploy": "gh-pages -d dist"
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d dist -b gh-pages"
     },
     "dependencies": {
         "@mdi/font": "^7.4.47",
