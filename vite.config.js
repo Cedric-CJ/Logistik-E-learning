@@ -17,11 +17,19 @@ export default defineConfig(({ command, mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url))
       },
     },
-    base: '/Logistik-E-learning/',
+    base: process.env.NODE_ENV === 'production' ? '/Logistik-E-learning/' : '/',
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
-      sourcemap: false
+      sourcemap: false,
+      emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          assetFileNames: 'assets/[name]-[hash][extname]',
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js'
+        }
+      }
     }
   }
 })

@@ -6,10 +6,10 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "vite build --mode production",
         "preview": "vite preview",
         "predeploy": "npm run build",
-        "deploy": "gh-pages -d dist -b gh-pages"
+        "deploy": "gh-pages -d dist -b gh-pages -m \"Deploy to GitHub Pages\""
     },
     "dependencies": {
         "@mdi/font": "^7.4.47",
