@@ -1,5 +1,6 @@
 <template>
   <div class="make-or-buy">
+    <Overlay v-model:show="showOverlay" v-model:currentStep="overlayStep" :steps="overlaySteps" @close="handleOverlayClosed" />
     <div class="container py-4">
       <h1 class="mb-4">Make-or-Buy Entscheidung</h1>
       
@@ -165,11 +166,20 @@
             <button class="btn btn-primary me-2" @click="pruefeUebung">Prüfen</button>
             <button class="btn btn-outline-secondary" @click="zeigeLoesung">Lösung anzeigen</button>
             
-            <div class="mt-3" v-if="loesungGezeigt">
-              <h5>Lösungsweg:</h5>
-              <p>Berechnung des Break-Even-Punktes:</p>
-              <p>Fixkosten / (Kaufpreis - variable Kosten) = 50.000 € / (80 € - 45 €) = 1.428,57 Stück</p>
-              <p>Abgerundet auf volle Stück: 1.429 Stück</p>
+            <div class="mt-3" v-if="loesungGezeigt" id="solution-section" ref="solutionSection">
+              <div class="card border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Lösungsweg:</h5>
+                  <button class="btn btn-sm btn-light" @click="loesungGezeigt = false">
+                    <i class="mdi mdi-close"></i> Ausblenden
+                  </button>
+                </div>
+                <div class="card-body">
+                  <p>Berechnung des Break-Even-Punktes:</p>
+                  <p>Fixkosten / (Kaufpreis - variable Kosten) = 50.000 € / (80 € - 45 €) = 1.428,57 Stück</p>
+                  <p class="mb-0">Abgerundet auf volle Stück: <strong>1.429 Stück</strong></p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -196,15 +206,20 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { Chart, registerables } from 'chart.js';
+import Overlay from '@/components/Overlay.vue';
+import { useHead } from '@vueuse/head';
 
-export default {
-  name: 'MakeOrBuy',
-  setup() {
+useHead({
+  title: 'Make-or-Buy-Analyse – Logistik E-Learning',
+  meta: [{ name: 'description', content: 'Interaktive Analyse und Rechner für Make-or-Buy-Entscheidungen.' }]
+});
+
     // Chart Referenz
     const chart = ref(null);
+    const solutionSection = ref(null);
     let myChart = null;
     
     // Formular-Daten
@@ -222,6 +237,32 @@ export default {
     const ubungRichtig = ref(false);
     const ubungFalsch = ref(false);
     const loesungGezeigt = ref(false);
+
+    // Overlay State
+    const showOverlay = ref(false);
+    const overlayStep = ref(0);
+    const overlaySteps = [
+      {
+        element: '.make-or-buy h1',
+        title: 'Willkommen zur Make-or-Buy-Analyse',
+        text: 'Diese Seite hilft Ihnen zu verstehen, wann es sich lohnt, ein Produkt selbst herzustellen (Make) oder einzukaufen (Buy).'
+      },
+      {
+        element: 'section:nth-of-type(2) .card:first-of-type',
+        title: 'Der Kostenrechner',
+        text: 'Passen Sie hier die Kosten an. Sie können die Fixkosten, variablen Kosten und den Einkaufspreis ändern. Nutzen Sie auch den Schieberegler, um den Jahresbedarf anzupassen.'
+      },
+      {
+        element: '.chart-container',
+        title: 'Das Diagramm',
+        text: 'Das Diagramm visualisiert die Kosten. Der Schnittpunkt der Linien ist der \'Break-Even-Punkt\'. Ab dieser Menge ist die Eigenfertigung (Make) günstiger.'
+      },
+      {
+        element: 'section:nth-of-type(4)',
+        title: 'Interaktive Übung',
+        text: 'Testen Sie Ihr Wissen! Berechnen Sie, ab welcher Menge sich die Eigenfertigung lohnt, und überprüfen Sie Ihre Antwort.'
+      }
+    ];
 
     // Berechne Break-Even-Punkt
     const berechneBreakEven = () => {
@@ -286,10 +327,27 @@ export default {
     
     // Lösung anzeigen
     const zeigeLoesung = () => {
+      const wasHidden = !loesungGezeigt.value;
       loesungGezeigt.value = true;
       ubungAntwort.value = '1429';
       ubungRichtig.value = true;
       ubungFalsch.value = false;
+      
+      // Scroll to solution section when showing
+      if (wasHidden) {
+        nextTick(() => {
+          if (solutionSection.value) {
+            solutionSection.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Add a small delay to ensure the scroll completes before potentially focusing
+            setTimeout(() => {
+              const firstFocusable = solutionSection.value.querySelector('button, [tabindex]');
+              if (firstFocusable) {
+                firstFocusable.focus({ preventScroll: true });
+              }
+            }, 500);
+          }
+        });
+      }
     };
 
     // Lifecycle Hooks
@@ -366,6 +424,11 @@ export default {
       
       // Initiales Update des Diagramms
       updateChart();
+
+      // Overlay beim ersten Besuch anzeigen
+      if (!localStorage.getItem('makeOrBuyOverlayShown')) {
+        showOverlay.value = true;
+      }
     });
 
     onBeforeUnmount(() => {
@@ -375,26 +438,10 @@ export default {
       }
     });
 
-    return {
-      chart,
-      fixeKosten,
-      variableKosten,
-      kaufpreis,
-      bestellkosten,
-      menge,
-      maxMenge,
-      breakEvenPoint,
-      empfehlung,
-      ubungAntwort,
-      ubungRichtig,
-      ubungFalsch,
-      loesungGezeigt,
-      updateChart,
-      pruefeUebung,
-      zeigeLoesung
-    };
-  }
-};
+    const handleOverlayClosed = () => {
+      showOverlay.value = false;
+      localStorage.setItem('makeOrBuyOverlayShown', 'true');
+    };  
 </script>
 
 <style scoped>

@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useHead } from '@vueuse/head';
 import { Bar } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+import Overlay from '@/components/Overlay.vue';
 
 // Register ChartJS components
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
@@ -16,30 +17,26 @@ useHead({
 
 // Product structure data
 const productStructure = ref({
-  product: 'Fahrrad',
+  product: 'Skateboard',
   quantity: 1,
   components: [
-    { id: 1, name: 'Rahmen', quantity: 1, level: 1 },
-    { id: 2, name: 'Vorderrad', quantity: 1, level: 1 },
-    { id: 3, name: 'Hinterrad', quantity: 1, level: 1 },
-    { id: 4, name: 'Lenker', quantity: 1, level: 1 },
-    { id: 5, name: 'Sattel', quantity: 1, level: 1 },
-    { id: 6, name: 'Felge', quantity: 2, level: 2, parent: [2, 3] },
-    { id: 7, name: 'Reifen', quantity: 2, level: 2, parent: [2, 3] },
-    { id: 8, name: 'Schlauch', quantity: 2, level: 2, parent: [2, 3] },
-    { id: 9, name: 'Speiche', quantity: 64, level: 3, parent: [6] },
-    { id: 10, name: 'Nabe', quantity: 2, level: 3, parent: [6] }
+    { id: 1, name: 'Deck', quantity: 1, level: 1 },
+    { id: 2, name: 'Achsen', quantity: 2, level: 1 },
+    { id: 3, name: 'Rollen', quantity: 4, level: 1 },
+    { id: 4, name: 'Kugellager', quantity: 8, level: 2, parent: [3] }, // 2 per Rolle
+    { id: 5, name: 'Schrauben', quantity: 8, level: 1 },
+    { id: 6, name: 'Griptape', quantity: 1, level: 1 },
   ]
 });
 
 // Chart data for material requirements
 const chartData = ref({
-  labels: ['Rahmen', 'Felgen', 'Reifen', 'Schläuche', 'Speichen', 'Naben'],
+  labels: ['Decks', 'Achsen', 'Rollen', 'Kugellager', 'Schrauben', 'Griptapes'],
   datasets: [
     {
       label: 'Benötigte Menge',
       backgroundColor: ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'],
-      data: [1, 2, 2, 2, 64, 2],
+      data: [1, 2, 4, 8, 8, 1], // Initial data for 1 Skateboard
       borderWidth: 0,
       borderRadius: 4
     }
@@ -84,23 +81,23 @@ const chartOptions = ref({
 const exerciseState = ref({
   showSolution: false,
   userInput: {
-    totalFrames: '',
-    totalRims: '',
-    totalTires: ''
+    totalDecks: '',
+    totalAchsen: '',
+    totalRollen: ''
   },
   validation: {
-    totalFrames: { isValid: null, message: '' },
-    totalRims: { isValid: null, message: '' },
-    totalTires: { isValid: null, message: '' }
+    totalDecks: { isValid: null, message: '' },
+    totalAchsen: { isValid: null, message: '' },
+    totalRollen: { isValid: null, message: '' }
   },
   isSubmitted: false
 });
 
-// Correct answers
+// Correct answers for 25 Skateboards
 const correctAnswers = {
-  totalFrames: '50',
-  totalRims: '100',
-  totalTires: '100'
+  totalDecks: '25',
+  totalAchsen: '50',
+  totalRollen: '100'
 };
 
 // Check answers
@@ -123,6 +120,17 @@ const checkAnswers = () => {
     }
   });
 
+  // Scroll to first error if any
+  if (!allCorrect) {
+    nextTick(() => {
+      const firstErrorInput = document.querySelector('.is-invalid');
+      if (firstErrorInput) {
+        firstErrorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstErrorInput.focus();
+      }
+    });
+  }
+
   return allCorrect;
 };
 
@@ -130,19 +138,39 @@ const checkAnswers = () => {
 const resetExercise = () => {
   exerciseState.value = {
     showSolution: false,
-    userInput: { totalFrames: '', totalRims: '', totalTires: '' },
+    userInput: { totalDecks: '', totalAchsen: '', totalRollen: '' },
     validation: {
-      totalFrames: { isValid: null, message: '' },
-      totalRims: { isValid: null, message: '' },
-      totalTires: { isValid: null, message: '' }
+      totalDecks: { isValid: null, message: '' },
+      totalAchsen: { isValid: null, message: '' },
+      totalRollen: { isValid: null, message: '' }
     },
     isSubmitted: false
   };
 };
 
+// Refs
+const solutionSection = ref(null);
+
 // Toggle solution
 const toggleSolution = () => {
+  const wasHidden = !exerciseState.value.showSolution;
   exerciseState.value.showSolution = !exerciseState.value.showSolution;
+  
+  // Scroll to solution section when showing
+  if (wasHidden) {
+    nextTick(() => {
+      if (solutionSection.value) {
+        solutionSection.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Add a small delay to ensure the scroll completes before potentially focusing
+        setTimeout(() => {
+          const firstFocusable = solutionSection.value.querySelector('button, [tabindex]');
+          if (firstFocusable) {
+            firstFocusable.focus({ preventScroll: true });
+          }
+        }, 500);
+      }
+    });
+  }
 };
 
 // Calculate total requirements
@@ -163,19 +191,19 @@ const calculateRequirements = (componentId, quantity = 1) => {
 
 // Calculate total requirements for all components
 const totalRequirements = computed(() => {
-  const frames = productStructure.value.components
-    .filter(c => c.name === 'Rahmen')
+  const decks = productStructure.value.components
+    .filter(c => c.name === 'Deck')
     .reduce((sum, c) => sum + calculateRequirements(c.id, 1), 0);
-    
-  const rims = productStructure.value.components
-    .filter(c => c.name === 'Felge')
+
+  const achsen = productStructure.value.components
+    .filter(c => c.name === 'Achsen')
     .reduce((sum, c) => sum + calculateRequirements(c.id, 1), 0);
-    
-  const tires = productStructure.value.components
-    .filter(c => c.name === 'Reifen')
+
+  const rollen = productStructure.value.components
+    .filter(c => c.name === 'Rollen')
     .reduce((sum, c) => sum + calculateRequirements(c.id, 1), 0);
-    
-  return { frames, rims, tires };
+
+  return { decks, achsen, rollen };
 });
 
 // Update chart data when quantity changes
@@ -195,9 +223,48 @@ watch(() => productStructure.value.quantity, () => {
   updateChartData();
 });
 
-// Initialize chart data
+// Overlay logic
+const showOverlay = ref(false);
+const overlayStep = ref(0);
+const overlaySteps = [
+  {
+    element: '.stuecklisten-page h1',
+    title: 'Willkommen zur Stücklistenanalyse',
+    text: 'Hier lernen Sie die Grundlagen der Stücklistenanalyse kennen und können Ihr Wissen interaktiv testen.'
+  },
+  {
+    element: '#product-structure-card',
+    title: 'Produktstruktur und Erzeugnisbaum',
+    text: 'Visualisieren Sie die Produktstruktur. Sie können die Produktionsmenge anpassen, um den Materialbedarf dynamisch zu sehen.'
+  },
+  {
+    element: '#chart-card',
+    title: 'Materialbedarfs-Diagramm',
+    text: 'Dieses Diagramm zeigt Ihnen die Gesamtmenge der benötigten Materialien für die ausgewählte Produktionsmenge.'
+  },
+  {
+    element: '#exercise-card',
+    title: 'Interaktive Übung',
+    text: 'Testen Sie Ihr Wissen! Berechnen Sie den Materialbedarf für das gegebene Szenario und geben Sie Ihre Antworten in die Felder ein.'
+  },
+  {
+    element: '#exercise-form',
+    title: 'Antworten überprüfen',
+    text: 'Nachdem Sie Ihre Antworten eingegeben haben, klicken Sie auf \"Überprüfen\", um Ihr Ergebnis zu sehen. Mit \"Lösung anzeigen\" können Sie sich den richtigen Rechenweg ansehen.'
+  }
+];
+
+const handleOverlayClosed = () => {
+  showOverlay.value = false;
+  localStorage.setItem('stuecklistenOverlayShown', 'true');
+};
+
+// Initialize chart data and check for overlay
 onMounted(() => {
   updateChartData();
+  if (!localStorage.getItem('stuecklistenOverlayShown')) {
+    showOverlay.value = true;
+  }
 });
 </script>
 
@@ -328,7 +395,7 @@ onMounted(() => {
                 </div>
               </div>
               
-              <div class="chart-container" style="height: 400px;">
+              <div id="chart-card" class="chart-container" style="height: 400px;">
                 <h3 class="h5 text-center mb-4">Benötigte Materialien für {{ productStructure.quantity }} {{ productStructure.product }}(er)</h3>
                 <Bar :data="chartData" :options="chartOptions" />
               </div>
@@ -343,14 +410,13 @@ onMounted(() => {
           </div>
           
           <!-- Interactive Exercise -->
-          <div class="card border-0 shadow-sm mb-5">
+          <div id="exercise-card" class="card border-0 shadow-sm mb-5">
             <div class="card-body">
               <h2 class="h4 mb-4">Interaktive Übung: Bedarfsermittlung</h2>
               
               <div class="exercise-description mb-4">
                 <p>
-                  Ein Unternehmen plant die Produktion von 50 Fahrrädern. Berechnen Sie die Gesamtmenge 
-                  an benötigten Rahmen, Felgen und Reifen unter Berücksichtigung der Produktstruktur.
+                  Ein Skateboard-Hersteller plant die Produktion von <strong>25 Skateboards</strong>. Ihre Aufgabe ist es, den Gesamtbedarf für die folgenden Hauptkomponenten zu ermitteln:
                 </p>
                 <p class="mb-0">
                   <strong>Hinweis:</strong> Beachten Sie die mehrstufige Produktstruktur und die 
@@ -358,19 +424,19 @@ onMounted(() => {
                 </p>
               </div>
               
-              <form @submit.prevent="checkAnswers" class="needs-validation" novalidate>
+              <form @submit.prevent="checkAnswers" id="exercise-form" class="needs-validation" novalidate>
                 <div class="row g-3">
                   <div class="col-md-4">
-                    <label for="totalFrames" class="form-label">Benötigte Rahmen</label>
+                    <label for="totalDecks" class="form-label">Gesamtbedarf Decks</label>
                     <div class="input-group">
                       <input 
                         type="number" 
                         class="form-control" 
-                        id="totalFrames" 
-                        v-model="exerciseState.userInput.totalFrames"
+                        id="totalDecks" 
+                        v-model="exerciseState.userInput.totalDecks"
                         :class="{
-                          'is-valid': exerciseState.validation.totalFrames.isValid === true,
-                          'is-invalid': exerciseState.validation.totalFrames.isValid === false
+                          'is-valid': exerciseState.validation.totalDecks.isValid === true,
+                          'is-invalid': exerciseState.validation.totalDecks.isValid === false
                         }"
                         required
                         :disabled="exerciseState.showSolution"
@@ -378,24 +444,24 @@ onMounted(() => {
                       <span class="input-group-text">Stück</span>
                     </div>
                     <div class="valid-feedback">
-                      {{ exerciseState.validation.totalFrames.isValid ? exerciseState.validation.totalFrames.message : '' }}
+                      {{ exerciseState.validation.totalDecks.isValid ? exerciseState.validation.totalDecks.message : '' }}
                     </div>
                     <div class="invalid-feedback">
-                      {{ exerciseState.validation.totalFrames.message }}
+                      {{ exerciseState.validation.totalDecks.message }}
                     </div>
                   </div>
                   
                   <div class="col-md-4">
-                    <label for="totalRims" class="form-label">Benötigte Felgen</label>
+                    <label for="totalAchsen" class="form-label">Gesamtbedarf Achsen</label>
                     <div class="input-group">
                       <input 
                         type="number" 
                         class="form-control" 
-                        id="totalRims" 
-                        v-model="exerciseState.userInput.totalRims"
+                        id="totalAchsen" 
+                        v-model="exerciseState.userInput.totalAchsen"
                         :class="{
-                          'is-valid': exerciseState.validation.totalRims.isValid === true,
-                          'is-invalid': exerciseState.validation.totalRims.isValid === false
+                          'is-valid': exerciseState.validation.totalAchsen.isValid === true,
+                          'is-invalid': exerciseState.validation.totalAchsen.isValid === false
                         }"
                         required
                         :disabled="exerciseState.showSolution"
@@ -403,24 +469,24 @@ onMounted(() => {
                       <span class="input-group-text">Stück</span>
                     </div>
                     <div class="valid-feedback">
-                      {{ exerciseState.validation.totalRims.isValid ? exerciseState.validation.totalRims.message : '' }}
+                      {{ exerciseState.validation.totalAchsen.isValid ? exerciseState.validation.totalAchsen.message : '' }}
                     </div>
                     <div class="invalid-feedback">
-                      {{ exerciseState.validation.totalRims.message }}
+                      {{ exerciseState.validation.totalAchsen.message }}
                     </div>
                   </div>
                   
                   <div class="col-md-4">
-                    <label for="totalTires" class="form-label">Benötigte Reifen</label>
+                    <label for="totalRollen" class="form-label">Gesamtbedarf Rollen</label>
                     <div class="input-group">
                       <input 
                         type="number" 
                         class="form-control" 
-                        id="totalTires" 
-                        v-model="exerciseState.userInput.totalTires"
+                        id="totalRollen" 
+                        v-model="exerciseState.userInput.totalRollen"
                         :class="{
-                          'is-valid': exerciseState.validation.totalTires.isValid === true,
-                          'is-invalid': exerciseState.validation.totalTires.isValid === false
+                          'is-valid': exerciseState.validation.totalRollen.isValid === true,
+                          'is-invalid': exerciseState.validation.totalRollen.isValid === false
                         }"
                         required
                         :disabled="exerciseState.showSolution"
@@ -428,10 +494,10 @@ onMounted(() => {
                       <span class="input-group-text">Stück</span>
                     </div>
                     <div class="valid-feedback">
-                      {{ exerciseState.validation.totalTires.isValid ? exerciseState.validation.totalTires.message : '' }}
+                      {{ exerciseState.validation.totalRollen.isValid ? exerciseState.validation.totalRollen.message : '' }}
                     </div>
                     <div class="invalid-feedback">
-                      {{ exerciseState.validation.totalTires.message }}
+                      {{ exerciseState.validation.totalRollen.message }}
                     </div>
                   </div>
                 </div>
@@ -465,17 +531,22 @@ onMounted(() => {
               </form>
               
               <!-- Solution -->
-              <div v-if="exerciseState.showSolution" class="mt-4 p-3 bg-light rounded">
-                <h3 class="h5">Lösung:</h3>
-                <p>Für die Produktion von 50 Fahrrädern werden benötigt:</p>
+              <div v-if="exerciseState.showSolution" id="solution-section" class="mt-4 p-3 bg-light rounded" ref="solutionSection">
+                <h3 class="h5 d-flex justify-content-between align-items-center">
+                  <span>Lösung:</span>
+                  <button class="btn btn-sm btn-outline-secondary" @click="exerciseState.showSolution = false">
+                    <i class="mdi mdi-close"></i> Ausblenden
+                  </button>
+                </h3>
+                <p>Für die Produktion von 25 Skateboards werden benötigt:</p>
                 <ul>
-                  <li><strong>Rahmen:</strong> 50 Stück (1 × 50)</li>
-                  <li><strong>Felgen:</strong> 100 Stück (2 × 50, da jedes Fahrrad 2 Räder hat)</li>
-                  <li><strong>Reifen:</strong> 100 Stück (2 × 50, da jedes Fahrrad 2 Reifen hat)</li>
+                  <li><strong>Decks:</strong> 25 Stück</li>
+                  <li><strong>Achsen:</strong> 50 Stück</li>
+                  <li><strong>Rollen:</strong> 100 Stück</li>
                 </ul>
                 <p class="mb-0">
-                  <strong>Hinweis:</strong> Die Berechnung erfolgt durch Multiplikation der Stückzahl pro Fahrrad 
-                  mit der Anzahl der Fahrräder. Bei mehrstufigen Stücklisten müssten zusätzlich die 
+                  <strong>Hinweis:</strong> Die Berechnung erfolgt durch Multiplikation der Stückzahl pro Skateboard 
+                  mit der Anzahl der Skateboards. Bei mehrstufigen Stücklisten müssten zusätzlich die 
                   Mengen der Unterkomponenten berücksichtigt werden.
                 </p>
               </div>
@@ -540,6 +611,7 @@ onMounted(() => {
       </div>
     </div>
   </div>
+  <Overlay v-model:show="showOverlay" v-model:currentStep="overlayStep" :steps="overlaySteps" @close="handleOverlayClosed" />
 </template>
 
 <style scoped>

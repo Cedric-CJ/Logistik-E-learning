@@ -3,20 +3,27 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
       <div class="container">
-        <RouterLink class="navbar-brand d-flex align-items-center" to="/" @click="closeMenu">
-          <img src="./assets/logo.png" alt="Logo" class="rounded-circle" style="width:40px; height:40px; object-fit:cover;">
-          <span class="d-none d-sm-inline">Logistik E-Learning</span>
-        </RouterLink>
-        
-        <button 
-          class="navbar-toggler" 
-          type="button" 
-          @click="toggleMenu" 
-          aria-label="Toggle navigation"
-          :aria-expanded="isMenuOpen ? 'true' : 'false'"
-        >
-          <span class="mdi mdi-menu"></span>
-        </button>
+        <div class="d-flex flex-grow-1 align-items-center">
+          <div class="d-flex align-items-center me-auto">
+            <RouterLink to="/" @click="closeMenu" class="d-flex align-items-center text-decoration-none">
+              <img src="./assets/logo.png" alt="Logo" class="rounded-circle me-2" style="width:40px; height:40px; object-fit:cover;">
+            </RouterLink>
+            <RouterLink to="/" @click="closeMenu" class="d-flex flex-column text-decoration-none">
+              <span class="d-inline text-white" style="line-height: 1.1;">Logistik E-Learning</span>
+              <small class="d-inline text-white-50" style="font-size: 0.8em;">Cedric Arnhold (s0586354)</small>
+            </RouterLink>
+          </div>
+          
+          <button 
+            class="navbar-toggler ms-auto" 
+            type="button" 
+            @click="toggleMenu" 
+            aria-label="Toggle navigation"
+            :aria-expanded="isMenuOpen ? 'true' : 'false'"
+          >
+            <span class="mdi mdi-menu"></span>
+          </button>
+        </div>
         
         <div class="collapse navbar-collapse" :class="{ 'show': isMenuOpen }">
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0">

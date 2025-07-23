@@ -5,6 +5,21 @@ import { createHead } from '@vueuse/head';
 import App from './App.vue';
 import router from './router';
 
+// Handle SPA redirect from 404.html on GitHub Pages
+(function() {
+  const l = window.location;
+  const params = new URLSearchParams(l.search);
+  const p = params.get('p');
+  if (p) {
+    const q = params.get('q');
+    const h = l.hash.slice(1);
+    const path = `/${p.replace(/~and~/g, '&')}`;
+    const query = q ? `?${q.replace(/~and~/g, '&')}` : '';
+    const hash = h ? `#${h}` : '';
+    window.history.replaceState(null, document.title, `${path}${query}${hash}`);
+  }
+})();
+
 // Import Bootstrap
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';

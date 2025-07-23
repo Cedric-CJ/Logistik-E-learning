@@ -1,6 +1,7 @@
 <template>
   <Transition name="page-slide-left" mode="out-in" appear>
-    <div class="abcxyz-page container py-4" key="abcxyz-page">
+        <div class="abcxyz-page container py-4" key="abcxyz-page">
+      <Overlay v-model:show="showOverlay" v-model:currentStep="overlayStep" :steps="overlaySteps" @close="handleOverlayClosed" />
       <h1 class="mb-4 text-center">ABC- und XYZ-Analyse</h1>
 
       <!-- ===== Handy‑Dreh‑Overlay ===== -->
@@ -158,15 +159,11 @@
               <div class="formula-content">
                 <div v-if="currentStep === 1">
                   <p>Berechnung des Wertes (W):</p>
-                  <p class="formula">
-                    W = Menge × Stückpreis
-                  </p>
+                  <p class="formula">W = Menge × Stückpreis</p>
                 </div>
                 <div v-else-if="currentStep === 2">
                   <p>Berechnung des Anteils (P):</p>
-                  <p class="formula">
-                    P = (W / Gesamtwert) × 100&nbsp;%
-                  </p>
+                  <p class="formula">P = (W / Gesamtwert) × 100&nbsp;%</p>
                 </div>
                 <div v-else-if="currentStep === 3">
                   <p>Kumulierung der Anteile (K):</p>
@@ -188,7 +185,7 @@
 
       <!-- ===== Erklärungstexte ===== -->
       <div class="explanation-section mt-4">
-        <div v-if="currentStep === 1" class="explanation-card">
+        <div v-if="currentStep === 1" id="step-1-explanation" class="explanation-card">
           <h4>ABC-Analyse</h4>
           <p>Die ABC-Analyse ist eine Methode zur Priorisierung von Objekten nach ihrer Bedeutung. Sie wird häufig in der Materialwirtschaft und im Bestandsmanagement eingesetzt, um den Fokus auf die wichtigsten Güter zu legen.</p>
           <p>Die Klassifizierung erfolgt nach dem Wertanteil am Gesamtbestand:</p>
@@ -199,7 +196,7 @@
           </ul>
         </div>
 
-        <div v-if="currentStep === 4" class="explanation-card">
+        <div v-else-if="currentStep === 4" class="explanation-card">
           <h4>XYZ-Analyse</h4>
           <p>Die XYZ-Analyse klassifiziert Artikel nach ihrer Verbrauchsstruktur und -stabilität. Sie wird oft mit der ABC-Analyse kombiniert, um eine umfassende Materialanalyse durchzuführen.</p>
           <p>Die Klassifizierung erfolgt nach dem Verbrauchsverhalten:</p>
@@ -213,8 +210,8 @@
 
       <!-- ===== Erklärung‑Overlay für Zell‑Klick ===== -->
       <Transition name="fade">
-        <div v-if="explain.visible" class="explain-overlay" role="dialog">
-          <div class="explain-card">
+        <div v-if="explain.visible" class="explain-overlay" role="dialog" @click.self="explain.visible = false">
+          <div class="explain-card" @click.stop>
             <h5 class="mb-3">{{ explain.title }}</h5>
             <p class="mb-3">{{ explain.text }}</p>
             
@@ -234,7 +231,7 @@
       </Transition>
 
       <!-- ===================== ÜBUNG ===================== -->
-      <div class="exercise-section mt-5">
+      <div id="abc-exercise" class="exercise-section mt-5">
         <h5>Übung: Fehlende Werte berechnen</h5>
         <div class="table-responsive">
           <table class="table table-sm table-bordered text-center">
@@ -354,7 +351,7 @@
       </div>
 
       <!-- XYZ-Matrix -->
-      <div class="exercise-section xyz-section mt-5 pt-4 border-top">
+      <div id="xyz-matrix" class="exercise-section xyz-section mt-5 pt-4 border-top">
         <h3 class="h4 mb-3">Interaktive Übung: ABC-XYZ-Matrix</h3>
         <div class="alert alert-info">
           <h5 class="alert-heading">So funktioniert's:</h5>
@@ -467,45 +464,119 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useHead } from '@vueuse/head'
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue';
+import Overlay from '@/components/Overlay.vue';
+import { useHead } from '@vueuse/head';
 
 useHead({
   title: 'ABC/XYZ-Analyse – Logistik E-Learning',
-  meta: [{ name: 'description', content: 'Interaktive ABC-Analyse mit Schritt-für-Schritt-Erklärung und Übung.' }]
-})
+  meta: [{ name: 'description', content: 'Interaktive Übung zur ABC- und XYZ-Analyse zur Materialklassifizierung.' }]
+});
 
-const isMobile = ref(false)
-const showRotateHint = ref(false)
+// -------------------- OVERLAY LOGIC --------------------
+const showOverlay = ref(false);
+const overlayStep = ref(0);
+const overlaySteps = [
+  {
+    element: '.abcxyz-page h1',
+    title: 'Willkommen zur ABC/XYZ-Analyse',
+    text: 'Diese Seite führt Sie interaktiv durch die ABC- und XYZ-Analyse, zwei wichtige Methoden zur Materialklassifizierung.'
+  },
+  {
+    element: '.steps-vertical',
+    title: 'Schritt-für-Schritt-Anleitung',
+    text: 'Diese Timeline führt Sie durch die Analyse. Klicken Sie auf einen Schritt, um direkt dorthin zu springen und die Tabelle entsprechend zu aktualisieren.'
+  },
+  {
+    element: '.abctable-wrap',
+    title: 'Interaktive Tabelle',
+    text: 'Hier sehen Sie die Daten. Die Spalten werden schrittweise aufgedeckt. Klicken Sie auf die Zellen mit blauer Schrift, um Erklärungen zu den Berechnungen zu erhalten.'
+  },
+  {
+    element: '.formula-card',
+    title: 'Formeln und Regeln',
+    text: 'In diesem Kasten finden Sie die Formeln und Klassifizierungsregeln, die für die Analyse verwendet werden. Er aktualisiert sich je nach aktuellem Schritt.'
+  },
+  {
+    element: '#abc-exercise',
+    title: 'ABC-Übung',
+    text: 'Testen Sie Ihr Wissen! Ordnen Sie die Produkte den richtigen ABC-Klassen zu und überprüfen Sie Ihre Lösung.',
+    customClass: 'highlight-abc-exercise'
+  },
+  {
+    element: '#xyz-matrix',
+    title: 'XYZ-Analyse',
+    text: 'Nach der ABC-Analyse folgt die XYZ-Analyse zur Klassifizierung nach Verbrauchsschwankungen. Ordnen Sie die Karten den richtigen Kategorien zu.',
+    customClass: 'highlight-xyz-matrix'
+  }
+];
+
+const handleOverlayClosed = () => {
+  showOverlay.value = false;
+  localStorage.setItem('abcxyzOverlayShown', 'true');
+};
+
+// -------------------- MOBILE ROTATION HINT --------------------
+const isMobile = ref(false);
+const showRotateHint = ref(false);
 
 onMounted(() => {
-  const rotationHintDismissed = localStorage.getItem('rotationHintDismissed') === 'true'
-  
+  // Show overlay on first visit
+  if (!localStorage.getItem('abcxyzOverlayShown')) {
+    showOverlay.value = true;
+  }
+
+  // Handle mobile rotation hint
+  const rotationHintDismissed = localStorage.getItem('rotationHintDismissed') === 'true';
   const updateMobile = () => {
-    const wasLandscape = window.innerWidth > window.innerHeight
-    isMobile.value = window.innerWidth < 992
-    
+    isMobile.value = window.innerWidth < 992;
     if (isMobile.value && !rotationHintDismissed) {
-      // Show hint only if in portrait mode and not previously dismissed
-      showRotateHint.value = !wasLandscape
+      showRotateHint.value = window.innerHeight > window.innerWidth;
     } else {
-      showRotateHint.value = false
+      showRotateHint.value = false;
     }
-  }
+  };
+
+  updateMobile();
+  window.addEventListener('resize', updateMobile);
+  window.addEventListener('orientationchange', updateMobile);
+
+  // Reset XYZ exercise on mount
+  resetXYZAvailableCards();
   
-  updateMobile()
-  window.addEventListener('resize', updateMobile)
-  window.addEventListener('orientationchange', updateMobile)
-  
-  // Cleanup
+  // Scroll to exercise section on mount if needed
+  scrollToExerciseSection();
+
+  // Cleanup listeners
   return () => {
-    window.removeEventListener('resize', updateMobile)
-    window.removeEventListener('orientationchange', updateMobile)
-  }
-})
+    window.removeEventListener('resize', updateMobile);
+    window.removeEventListener('orientationchange', updateMobile);
+  };
+});
 
 const currentStep = ref(1)
-const goToStep = (step) => (currentStep.value = step)
+const goToStep = (step) => {
+  currentStep.value = step;
+  // Scroll to exercise section when step changes
+  nextTick(() => {
+    scrollToExerciseSection();
+  });
+}
+
+// Watch for route changes to handle direct navigation
+import { useRoute } from 'vue-router';
+const route = useRoute();
+
+// Scroll to exercise section function
+const scrollToExerciseSection = () => {
+  nextTick(() => {
+    const sectionId = `step-${currentStep.value}-explanation`;
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+}
 const getStepTitle = (step) => ['Wert berechnen', 'Anteil berechnen', 'Kumulierte Werte', 'Klassifizierung'][step - 1]
 const products = reactive([
   { id: 1, name: 'Laptop',       quantity: 15, unitPrice: 1200 },
@@ -977,9 +1048,6 @@ const isCellCorrect = (row, col) => {
 
 const resetXYZExercise = () => resetXYZAvailableCards()
 
-onMounted(() => {
-  resetXYZAvailableCards()
-})
 </script>
 
 <style scoped>
@@ -1345,6 +1413,56 @@ onMounted(() => {
 .explain-card::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* Spezielle Highlight-Klassen für das Overlay */
+:global(.highlight-abc-exercise) {
+  z-index: 1055 !important; /* Höher als Highlight, aber unter Overlay */
+}
+
+:global(.highlight-abc-exercise) + .highlight {
+  box-shadow: 0 0 0 4px #4CAF50 !important;
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease-in-out;
+  position: relative;
+  z-index: 1050 !important; /* Unter dem Overlay, über normalem Inhalt */
+  max-height: calc(100vh - 140px) !important;
+  overflow: auto !important;
+  margin: 4px 0;
+  padding: 4px 0;
+}
+
+:global(.highlight-xyz-matrix) {
+  z-index: 1055 !important; /* Höher als Highlight, aber unter Overlay */
+}
+
+:global(.highlight-xyz-matrix) ~ .xyz-matrix {
+  box-shadow: 0 0 0 4px #2196F3 !important;
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease-in-out;
+  position: relative;
+  z-index: 1050 !important; /* Unter dem Overlay, über normalem Inhalt */
+  background-color: rgba(33, 150, 243, 0.05) !important;
+  max-height: calc(100vh - 140px) !important;
+  overflow: auto !important;
+  margin: 4px 0;
+  padding: 4px 0;
+}
+
+/* Sicherstellen, dass Header/Footer immer sichtbar bleiben */
+:global(header) {
+  position: relative !important;
+  z-index: 1070 !important;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+:global(footer) {
+  position: relative !important;
+  z-index: 1070 !important;
+  background: white;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+}
+
 @media (max-width: 991.98px) {
   .steps-vertical { 
     flex-direction: row; 
