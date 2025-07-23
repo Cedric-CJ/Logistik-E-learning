@@ -72,22 +72,15 @@
       </div>
     </nav>
 
-    <!-- Page Loading Indicator -->
-    <div v-if="isLoading" class="page-loading">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Laden...</span>
-      </div>
+    <!-- Loading Indicator -->
+    <div v-if="loadingStore.isLoading" class="loading-overlay">
+      <div class="spinner"></div>
     </div>
 
     <!-- Main Content -->
-    <main class="container my-4 pt-5">
+    <main class="main-content">
       <RouterView v-slot="{ Component }">
-        <Transition 
-          :name="$route.meta.transition || 'fade'" 
-          mode="out-in"
-          @before-enter="startLoading"
-          @after-enter="finishLoading"
-        >
+        <Transition :name="$route.meta.transition || 'fade'" mode="out-in">
           <component :is="Component" :key="$route.path" />
         </Transition>
       </RouterView>
@@ -102,86 +95,24 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue';
 import { RouterView, RouterLink } from 'vue-router';
+import { loadingStore } from '@/stores/loadingStore';
 
-export default {
-  components: {
-    RouterView,
-    RouterLink
-  },
-  data() {
-    return {
-      isMenuOpen: false,
-      isLoading: false,
-      loadingTimeout: null
-    }
-  },
-  computed: {
-    navClasses() {
-      return {
-        'navbar': true,
-        'navbar-expand-lg': true,
-        'navbar-dark': true,
-        'bg-primary': true
-      }
-    }
-  },
-  methods: {
-    toggleMenu() {
-      this.isMenuOpen = !this.isMenuOpen;
-      // Close menu when clicking outside
-      if (this.isMenuOpen) {
-        document.addEventListener('click', this.handleClickOutside);
-      } else {
-        document.removeEventListener('click', this.handleClickOutside);
-      }
-    },
-    closeMenu() {
-      this.isMenuOpen = false;
-      document.removeEventListener('click', this.handleClickOutside);
-    },
-    handleClickOutside(event) {
-      const navbar = this.$el.querySelector('.navbar');
-      const button = this.$el.querySelector('.navbar-toggler');
-      
-      if (!navbar.contains(event.target) && event.target !== button) {
-        this.closeMenu();
-      }
-    },
-    startLoading() {
-      // Clear any existing timeout to prevent flickering
-      if (this.loadingTimeout) {
-        clearTimeout(this.loadingTimeout);
-      }
-      
-      // Only show loading if it takes more than 300ms
-      this.loadingTimeout = setTimeout(() => {
-        this.isLoading = true;
-      }, 300);
-    },
-    finishLoading() {
-      // Clear the loading timeout if it hasn't fired yet
-      if (this.loadingTimeout) {
-        clearTimeout(this.loadingTimeout);
-        this.loadingTimeout = null;
-      }
-      
-      // Hide loading indicator
-      this.isLoading = false;
-      
-      // Scroll to top of the page
-      window.scrollTo(0, 0);
-    }
-  },
-  beforeUnmount() {
-    // Clean up event listeners
-    document.removeEventListener('click', this.handleClickOutside);
-    if (this.loadingTimeout) {
-      clearTimeout(this.loadingTimeout);
-    }
-  }
-}
+const isMenuOpen = ref(false);
+
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value;
+};
+
+const closeMenu = () => {
+  isMenuOpen.value = false;
+};
+
+// No need for explicit event listener handling for outside click in this simplified setup,
+// assuming closing the menu via navigation is sufficient.
+
 </script>
 
 <style scoped>

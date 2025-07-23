@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { RouterLink } from 'vue-router';
 import { useHead } from '@vueuse/head';
 import { Bar } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
@@ -262,10 +263,20 @@ const handleOverlayClosed = () => {
 // Initialize chart data and check for overlay
 onMounted(() => {
   updateChartData();
-  if (!localStorage.getItem('stuecklistenOverlayShown')) {
-    showOverlay.value = true;
-  }
+  
+  // Check for overlay after a short delay to ensure component is fully mounted
+  const checkOverlay = () => {
+    if (!localStorage.getItem('stuecklistenOverlayShown')) {
+      showOverlay.value = true;
+    }
+  };
+  
+  // Use requestAnimationFrame to ensure the DOM is ready
+  requestAnimationFrame(() => {
+    nextTick(checkOverlay);
+  });
 });
+
 </script>
 
 <template>

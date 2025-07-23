@@ -87,18 +87,15 @@ const position = computed(() => {
   
   // Ensure the overlay is at least below the header
   top = Math.max(top, headerHeight + 10);
-  
-  // Ensure the overlay is positioned relative to the viewport, not the document
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-  top += scrollTop;
-  left += scrollLeft;
+
+  // Cap the top position to a maximum of 500px from the top of the viewport
+  top = Math.min(top, 500);
 
   return {
     top: `${top}px`,
     left: `${left}px`,
-    position: 'absolute',
-    'z-index': '1050' // Höher als das Highlight, um Überlappungen zu vermeiden
+    position: 'fixed', // Use fixed positioning to keep it in the viewport
+    'z-index': '1050'
   };
 });
 

@@ -153,7 +153,7 @@
 
         <!-- ───────────── Formel‑Kasten ───────────── -->
         <div class="col-lg-3">
-          <div class="formula-card card mb-4">
+          <div class="formula-card card mb-4" :class="{ 'highlight-step': currentStep > 0 }">
             <div class="card-body">
               <h5 class="card-title">Aktueller Schritt: {{ getStepTitle(currentStep) }}</h5>
               <div class="formula-content">
@@ -196,7 +196,29 @@
           </ul>
         </div>
 
-        <div v-else-if="currentStep === 4" class="explanation-card">
+        <div v-else-if="currentStep === 2" id="step-2-explanation" class="explanation-card">
+          <h4>Schritt 2: Anteil berechnen</h4>
+          <p>Nachdem der Wert für jedes Produkt berechnet wurde, bestimmen wir den prozentualen Anteil jedes Produkts am Gesamtwert. Dies hilft uns zu verstehen, welche Produkte den größten Beitrag zum Gesamtwert leisten.</p>
+          <p>Die Formel lautet: <strong>Anteil (%) = (Produktwert / Gesamtwert) × 100</strong></p>
+        </div>
+
+        <div v-else-if="currentStep === 3" id="step-3-explanation" class="explanation-card">
+          <h4>Schritt 3: Kumulieren</h4>
+          <p>Im dritten Schritt werden die prozentualen Anteile der Produkte (beginnend mit dem höchsten) aufsummiert. Dieser kumulierte Wert ist entscheidend für die spätere Einteilung in die ABC-Klassen.</p>
+          <p>Damit dies funktioniert, müssen die Produkte zuerst absteigend nach ihrem Wert sortiert werden.</p>
+        </div>
+
+        <div v-else-if="currentStep === 4" id="step-4-explanation" class="explanation-card">
+          <h4>Schritt 4: Klasse zuordnen</h4>
+          <p>Zuletzt werden die Produkte basierend auf ihrem kumulierten Prozentwert in die Klassen A, B oder C eingeteilt. Die Grenzen sind üblicherweise wie folgt definiert:</p>
+          <ul>
+            <li><strong>Klasse A:</strong> Produkte, die zusammen bis zu 80% des Gesamtwertes ausmachen.</li>
+            <li><strong>Klasse B:</strong> Produkte, die zusammen den Bereich von 80% bis 95% des Gesamtwertes abdecken.</li>
+            <li><strong>Klasse C:</strong> Produkte, die die restlichen 5% des Gesamtwertes ausmachen (über 95%).</li>
+          </ul>
+        </div>
+
+        <div v-if="currentStep === 4" id="xyz-explanation" class="explanation-card">
           <h4>XYZ-Analyse</h4>
           <p>Die XYZ-Analyse klassifiziert Artikel nach ihrer Verbrauchsstruktur und -stabilität. Sie wird oft mit der ABC-Analyse kombiniert, um eine umfassende Materialanalyse durchzuführen.</p>
           <p>Die Klassifizierung erfolgt nach dem Verbrauchsverhalten:</p>
@@ -1412,6 +1434,20 @@ const resetXYZExercise = () => resetXYZAvailableCards()
 }
 .explain-card::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+.formula {
+  background-color: #e9ecef;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.formula-card.highlight-step {
+  border-color: #0d6efd;
+  box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
 }
 
 /* Spezielle Highlight-Klassen für das Overlay */
