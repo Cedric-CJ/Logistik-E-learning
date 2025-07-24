@@ -71,7 +71,12 @@
         <div class="card">
           <div class="card-body">
             <div class="chart-container" style="position: relative; height: 300px;">
-              <canvas ref="chart"></canvas>
+              <canvas ref="chart" v-show="!isLoading"></canvas>
+              <div v-if="isLoading" class="d-flex justify-content-center align-items-center" style="height: 100%;">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
             </div>
             <div class="mt-3" v-if="breakEvenPoint > 0">
               <p class="mb-0">Break-Even-Punkt: {{ breakEvenPoint.toFixed(0) }} Stück/Jahr</p>
@@ -207,7 +212,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { Chart, registerables } from 'chart.js';
 import Overlay from '@/components/Overlay.vue';
 import { useHead } from '@vueuse/head';
@@ -238,6 +243,9 @@ useHead({
     const ubungFalsch = ref(false);
     const loesungGezeigt = ref(false);
 
+    // Component state
+    const isLoading = ref(true);
+    
     // Overlay State
     const showOverlay = ref(false);
     const overlayStep = ref(0);
@@ -350,14 +358,27 @@ useHead({
       }
     };
 
-    // Lifecycle Hooks
-    onMounted(() => {
-      // Chart.js registrieren
-      Chart.register(...registerables);
+    // Initialize chart
+    const initChart = () => {
+      console.log('Initializing chart...');
       
-      // Diagramm initialisieren
+      // Ensure the chart ref exists and is mounted
+      if (!chart.value) {
+        console.error('Chart canvas element not found');
+        return null;
+      }
+      
+      console.log('Canvas element found:', chart.value);
+      
       const ctx = chart.value.getContext('2d');
-      myChart = new Chart(ctx, {
+      if (!ctx) {
+        console.error('Could not get 2D context from canvas');
+        return null;
+      }
+      
+      console.log('2D context obtained, creating chart...');
+      
+      return new Chart(ctx, {
         type: 'line',
         data: {
           labels: [],
@@ -424,17 +445,127 @@ useHead({
       
       // Initiales Update des Diagramms
       updateChart();
+      console.log('Chart initialized successfully');
+      return myChart;
+    };
 
-      // Overlay beim ersten Besuch anzeigen
-      if (!localStorage.getItem('makeOrBuyOverlayShown')) {
-        showOverlay.value = true;
-      }
+    // Show overlay on first visit
+    if (!localStorage.getItem('makeOrBuyOverlayShown')) {
+      showOverlay.value = true;
+    }
+
+    // Lifecycle Hooks
+    onMounted(() => {
+      console.log('Component mounted, initializing...');
+      
+      // Register Chart.js components
+      Chart.register(...registerables);
+      
+      // Use a small delay to ensure the component is fully rendered
+      const init = () => {
+        console.log('Initializing chart...');
+        
+        if (!chart.value) {
+          console.log('Chart canvas not found, retrying...');
+          setTimeout(init, 100);
+          return;
+        }
+        
+        try {
+          const ctx = chart.value.getContext('2d');
+          if (!ctx) {
+            throw new Error('Could not get 2D context');
+          }
+          
+          myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: [],
+              datasets: [
+                {
+                  label: 'Make (Eigenfertigung)',
+                  data: [],
+                  borderColor: 'rgb(75, 192, 192)',
+                  tension: 0.1,
+                  fill: false
+                },
+                {
+                  label: 'Buy (Zukauf)',
+                  data: [],
+                  borderColor: 'rgb(255, 99, 132)',
+                  tension: 0.1,
+                  fill: false
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Menge (Stück/Jahr)'
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: 'Kosten (€)'
+                  },
+                  beginAtZero: true
+                }
+              },
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      let label = context.dataset.label || '';
+                      if (label) {
+                        label += ': ';
+                      }
+                      if (context.parsed.y !== null) {
+                        label += new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                      }
+                      return label;
+                    }
+                  }
+                },
+                legend: {
+                  position: 'top',
+                },
+                title: {
+                  display: true,
+                  text: 'Kostenvergleich Make-or-Buy'
+                }
+              }
+            }
+          });
+          
+          // Initial chart update
+          updateChart();
+          console.log('Chart initialized successfully');
+          
+          // Show overlay on first visit
+          if (!localStorage.getItem('makeOrBuyOverlayShown')) {
+            showOverlay.value = true;
+          }
+        } catch (error) {
+          console.error('Error initializing chart:', error);
+        } finally {
+          isLoading.value = false;
+          console.log('Component initialization complete');
+        }
+      };
+      
+      // Start initialization
+      init();
     });
-
+    
     onBeforeUnmount(() => {
-      // Aufräumen
       if (myChart) {
         myChart.destroy();
+        myChart = null;
       }
     });
 

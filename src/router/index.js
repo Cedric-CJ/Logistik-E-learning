@@ -34,8 +34,8 @@ const routes = [
     name: 'MakeOrBuy',
     component: MakeOrBuy,
     meta: { 
-      title: 'Make or Buy',
-      transition: 'page-slide-left'
+      title: 'Make-or-Buy Entscheidung - Logistik E-Learning',
+      transition: 'fade'
     }
   },
   {

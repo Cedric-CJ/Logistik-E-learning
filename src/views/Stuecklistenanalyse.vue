@@ -621,8 +621,63 @@ onMounted(() => {
         </div>
       </div>
     </div>
+    
+    <!-- Practical Application -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h2 class="h4 mb-4">Praktische Anwendung in der Materialwirtschaft</h2>
+        
+        <p>
+          Die Stücklistenanalyse bildet die Grundlage für verschiedene betriebswirtschaftliche Prozesse:
+        </p>
+        
+        <div class="row mt-4">
+          <div class="col-md-6">
+            <div class="card h-100 border-0 bg-light">
+              <div class="card-body">
+                <h3 class="h5">Materialbedarfsplanung (MRP)</h3>
+                <p>
+                  Durch die mehrstufige Auflösung der Stücklisten kann der genaue Materialbedarf 
+                  für die Produktion ermittelt werden. Dies ist entscheidend für:
+                </p>
+                <ul class="mb-0">
+                  <li>Bestellmengenplanung</li>
+                  <li>Lagerbestandsführung</li>
+                  <li>Lieferterminplanung</li>
+                  <li>Kapazitätsplanung</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6 mt-4 mt-md-0">
+            <div class="card h-100 border-0 bg-light">
+              <div class="card-body">
+                <h3 class="h5">Kostenrechnung</h3>
+                <p>
+                  Stücklisten bilden die Basis für die Kalkulation der Herstellkosten:
+                </p>
+                <ul class="mb-0">
+                  <li>Ermittlung der Einzelkosten</li>
+                  <li>Kostenstellenrechnung</li>
+                  <li>Preiskalkulation</li>
+                  <li>Deckungsbeitragsrechnung</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="alert alert-warning mt-4">
+          <i class="mdi mdi-alert-outline me-2"></i>
+          <strong>Wichtig:</strong> Für eine effiziente Materialwirtschaft ist die Pflege 
+          aktueller und korrekter Stücklisten unerlässlich. Änderungen an der Produktstruktur 
+          müssen zeitnah in den Stücklisten berücksichtigt werden.
+        </div>
+      </div>
+    </div>
+    <Overlay v-model:show="showOverlay" v-model:currentStep="overlayStep" :steps="overlaySteps" @close="handleOverlayClosed" />
   </div>
-  <Overlay v-model:show="showOverlay" v-model:currentStep="overlayStep" :steps="overlaySteps" @close="handleOverlayClosed" />
 </template>
 
 <style scoped>
