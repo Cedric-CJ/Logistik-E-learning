@@ -134,22 +134,22 @@
                 <tbody>
                   <tr>
                     <td>Fixe Kosten pro Jahr</td>
-                    <td>50.000 €</td>
+                    <td>75.000 €</td>
                     <td>-</td>
                   </tr>
                   <tr>
                     <td>Variable Kosten pro Stück</td>
-                    <td>45 €</td>
+                    <td>38 €</td>
                     <td>-</td>
                   </tr>
                   <tr>
                     <td>Einkaufspreis pro Stück</td>
                     <td>-</td>
-                    <td>80 €</td>
+                    <td>65 €</td>
                   </tr>
                   <tr>
                     <td>Jahresbedarf</td>
-                    <td colspan="2">2.000 Stück</td>
+                    <td colspan="2">3.000 Stück</td>
                   </tr>
                 </tbody>
               </table>
@@ -164,7 +164,7 @@
                 v-model="ubungAntwort" 
                 :class="{ 'is-valid': ubungRichtig, 'is-invalid': ubungFalsch }"
               >
-              <div class="valid-feedback">Richtig! Die Eigenfertigung lohnt sich ab 1.429 Stück.</div>
+              <div class="valid-feedback">Richtig! Die Eigenfertigung lohnt sich ab 2.778 Stück.</div>
               <div class="invalid-feedback">Leider falsch. Überprüfen Sie Ihre Berechnung noch einmal.</div>
             </div>
             
@@ -181,8 +181,8 @@
                 </div>
                 <div class="card-body">
                   <p>Berechnung des Break-Even-Punktes:</p>
-                  <p>Fixkosten / (Kaufpreis - variable Kosten) = 50.000 € / (80 € - 45 €) = 1.428,57 Stück</p>
-                  <p class="mb-0">Abgerundet auf volle Stück: <strong>1.429 Stück</strong></p>
+                  <p>Fixkosten / (Kaufpreis - variable Kosten) = 75.000 € / (65 € - 38 €) = 2.777,78 Stück</p>
+                  <p class="mb-0">Abgerundet auf volle Stück: <strong>2.778 Stück</strong></p>
                 </div>
               </div>
             </div>
@@ -228,12 +228,12 @@ useHead({
     let myChart = null;
     
     // Formular-Daten
-    const fixeKosten = ref(50000);
-    const variableKosten = ref(45);
-    const kaufpreis = ref(80);
+    const fixeKosten = ref(75000);
+    const variableKosten = ref(38);
+    const kaufpreis = ref(65);
     const bestellkosten = ref(0);
-    const menge = ref(2000);
-    const maxMenge = ref(5000);
+    const menge = ref(3000);
+    const maxMenge = ref(6000);
     const breakEvenPoint = ref(0);
     const empfehlung = ref('');
     

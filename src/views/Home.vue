@@ -6,8 +6,7 @@
           <div class="col-lg-6 mb-4 mb-lg-0">
             <h1 class="display-4 fw-bold mb-4">Logistik E-Learning</h1>
             <p class="lead mb-4">
-              Willkommen auf der interaktiven Lernplattform für Logistik-Methoden an der HTW Berlin.  
-              Vertiefen Sie Ihr Wissen durch praxisnahe Übungen – von Bestandsanalyse bis Entscheidungsfindung.
+              Willkommen auf meiner interaktiven E‑Learning-Plattform für Logistik-Methoden. Vertiefen Sie Ihr Wissen mit praxisnahen Übungen
             </p>
             <div class="d-flex gap-3 flex-wrap">
               <router-link to="/abc-xyz" class="btn btn-primary btn-lg px-4">
@@ -74,9 +73,6 @@
             <h2 class="mb-4 section-title">Über dieses Projekt</h2>
             <p class="mb-4">
               Diese Webseite wurde von Cedric Arnhold (586354) an der HTW Berlin entwickelt, um die Studienleistung "E-Learning in der Produktionswirtschaft/Logistik" zu absolvieren.
-            </p>
-            <p class="mb-4">
-              Theorie trifft Praxis: Lernen Sie Analysemethoden kennen und wenden Sie sie direkt an.
             </p>
             <div class="d-flex align-items-center">
               <img
